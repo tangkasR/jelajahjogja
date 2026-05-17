@@ -6,8 +6,7 @@
     <section
         class="relative bg-gray-900 h-screen min-h-[600px] max-h-[900px] flex items-center justify-center overflow-hidden">
         @if ($featured->first()?->hero)
-            <img src="{{ asset('storage/hero.jpg') }}"
-                class="absolute inset-0 w-full h-full object-cover opacity-50 scale-105"
+            <img src="{{ asset('/hero.jpg') }}" class="absolute inset-0 w-full h-full object-cover opacity-50 scale-105"
                 style="animation: slowZoom 20s ease-in-out infinite alternate;">
         @else
             <div class="absolute inset-0 bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900"></div>
