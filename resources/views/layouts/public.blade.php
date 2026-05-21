@@ -148,7 +148,58 @@
                 <a href="{{ route('home') }}" class="flex items-center gap-2.5">
                     <img src="{{ asset('/imglogo.png') }}" class="w-24 h-full" alt="logo" />
                 </a>
+                {{-- Desktop nav --}}
                 <div class="hidden md:flex items-center gap-7">
+                    <a href="{{ route('home') }}"
+                        class="nav-underline text-sm font-medium text-gray-600 hover:text-blue-600 transition">
+                        <i class="fa-solid fa-house mr-1.5 text-xs"></i>Beranda
+                    </a>
+                    <a href="{{ route('destinations.index') }}"
+                        class="nav-underline text-sm font-medium text-gray-600 hover:text-blue-600 transition">
+                        <i class="fa-solid fa-map-location-dot mr-1.5 text-xs"></i>Destinasi
+                    </a>
+                    <a href="{{ route('trip-planner') }}"
+                        class="nav-underline text-sm font-medium text-gray-600 hover:text-blue-600 transition">
+                        <i class="fa-solid fa-route mr-1.5 text-xs"></i>Trip Planner
+                    </a>
+                    <a href="{{ route('submit') }}"
+                        class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition shadow-md shadow-blue-500/20">
+                        <i class="fa-solid fa-plus text-xs"></i> Submit Wisata
+                    </a>
+
+                    {{-- User menu --}}
+                    @auth
+                        @if (!auth()->user()->isAdmin())
+                            <div class="relative" id="userMenuWrapper">
+                                <button onclick="toggleUserMenu()"
+                                    class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-full text-sm font-medium text-gray-700 transition">
+                                    <div
+                                        class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                                        {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                    </div>
+                                    {{ Str::limit(auth()->user()->name, 12) }}
+                                    <i class="fa-solid fa-chevron-down text-xs text-gray-400"></i>
+                                </button>
+                                <div id="userDropdown" style="display:none;"
+                                    class="absolute right-0 top-full mt-2 w-44 bg-white border border-gray-100 rounded-2xl shadow-lg py-1 z-50">
+                                    <div class="px-4 py-2 border-b border-gray-100">
+                                        <p class="text-xs font-semibold text-gray-800 truncate">{{ auth()->user()->name }}
+                                        </p>
+                                        <p class="text-xs text-gray-400 truncate">{{ auth()->user()->email }}</p>
+                                    </div>
+                                    <form action="{{ route('auth.logout') }}" method="POST">
+                                        @csrf
+                                        <button
+                                            class="w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition">
+                                            <i class="fa-solid fa-right-from-bracket text-xs"></i> Logout
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        @endif
+                    @endauth
+                </div>
+                {{-- <div class="hidden md:flex items-center gap-7">
                     <a href="{{ route('home') }}"
                         class="nav-underline text-sm font-medium text-gray-600 hover:text-blue-600 transition">
                         <i class="fa-solid fa-house mr-1.5 text-xs"></i>Beranda
@@ -165,7 +216,7 @@
                         class="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-5 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition shadow-md shadow-blue-500/20">
                         <i class="fa-solid fa-plus text-xs"></i> Ajukan Wisata
                     </a>
-                </div>
+                </div> --}}
                 <button id="hamburger"
                     class="md:hidden p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
                     onclick="toggleMenu()">
@@ -260,6 +311,18 @@
         function toggleMenu() {
             document.getElementById('mobile-menu').classList.toggle('open');
         }
+
+        function toggleUserMenu() {
+            const dd = document.getElementById('userDropdown');
+            dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+        }
+        document.addEventListener('click', function(e) {
+            const wrapper = document.getElementById('userMenuWrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                const dd = document.getElementById('userDropdown');
+                if (dd) dd.style.display = 'none';
+            }
+        });
     </script>
 
     @stack('scripts')

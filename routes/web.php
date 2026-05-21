@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Public\TripPlannerController;
+use App\Http\Controllers\Public\AuthController;
 
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -18,8 +19,13 @@ Route::get('/destinasi/{slug}', [DestinationController::class, 'show'])->name('d
 Route::post('/destinasi/{slug}/review', [ReviewController::class, 'store'])->name('destinations.review');
 Route::get('/submit', [SubmissionController::class, 'create'])->name('submit');
 Route::post('/submit', [SubmissionController::class, 'store'])->name('submit.store');
+// Route::get('/trip-planner', [TripPlannerController::class, 'index'])->name('trip-planner');
+// Route::post('/trip-planner/generate', [TripPlannerController::class, 'generate'])->name('trip-planner.generate');
+// Route::get('/trip-planner/result', [TripPlannerController::class, 'result'])->name('trip-planner.result');
 Route::get('/trip-planner', [TripPlannerController::class, 'index'])->name('trip-planner');
-Route::post('/trip-planner/generate', [TripPlannerController::class, 'generate'])->name('trip-planner.generate');
+Route::post('/trip-planner/generate', [TripPlannerController::class, 'generate'])
+    ->name('trip-planner.generate')
+    ->middleware('auth.check');
 Route::get('/trip-planner/result', [TripPlannerController::class, 'result'])->name('trip-planner.result');
 
 // Auth routes
@@ -28,6 +34,13 @@ Route::post('/admin/login', [LoginController::class, 'login'])->name('login.post
 Route::post('/admin/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/change-password', [App\Http\Controllers\Admin\PasswordController::class, 'index'])->name('admin.password.index');
 Route::post('/change-password', [App\Http\Controllers\Admin\PasswordController::class, 'update'])->name('admin.password.update');
+
+// Public Auth
+Route::post('/auth/register', [AuthController::class, 'register'])->name('auth.register');
+Route::post('/auth/verify-otp', [AuthController::class, 'verifyOtp'])->name('auth.verify-otp');
+Route::post('/auth/resend-otp', [AuthController::class, 'resendOtp'])->name('auth.resend-otp');
+Route::post('/auth/login', [AuthController::class, 'login'])->name('auth.login');
+Route::post('/auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
 // Admin routes
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {

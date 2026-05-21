@@ -157,13 +157,39 @@
                 </div>
 
                 {{-- Submit --}}
-                <button type="submit" id="submitBtn"
+                {{-- Submit --}}
+                @auth
+                    @if (!auth()->user()->isAdmin())
+                        <button type="submit" id="submitBtn"
+                            class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600
+                                text-white py-4 rounded-2xl font-bold text-base hover:opacity-90 active:scale-98
+                                transition shadow-lg shadow-blue-500/25">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            Buat rencana perjalanan dengan AI
+                        </button>
+                    @else
+                        <button type="button" onclick="document.getElementById('authModal').classList.remove('hidden')"
+                            class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600
+                                text-white py-4 rounded-2xl font-bold text-base hover:opacity-90 transition shadow-lg shadow-blue-500/25">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            Buat rencana perjalanan dengan AI
+                        </button>
+                    @endif
+                @else
+                    <button type="button" onclick="document.getElementById('authModal').classList.remove('hidden')"
+                        class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600
+                            text-white py-4 rounded-2xl font-bold text-base hover:opacity-90 transition shadow-lg shadow-blue-500/25">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        Buat rencana perjalanan dengan AI
+                    </button>
+                @endauth
+                {{-- <button type="submit" id="submitBtn"
                     class="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600
                            text-white py-4 rounded-2xl font-bold text-base hover:opacity-90 active:scale-98
                            transition shadow-lg shadow-blue-500/25">
                     <i class="fa-solid fa-wand-magic-sparkles"></i>
                     Buat rencana perjalanan dengan AI
-                </button>
+                </button> --}}
                 <p class="text-center text-xs text-gray-400">
                     <i class="fa-solid fa-clock mr-1"></i> Proses sekitar 10-20 detik
                 </p>
@@ -191,11 +217,9 @@
 
         {{-- Animated grid background --}}
         <div class="absolute inset-0 overflow-hidden pointer-events-none"
-            style="
-        background-image: linear-gradient(rgba(99,102,241,0.07) 1px, transparent 1px),
-                          linear-gradient(90deg, rgba(99,102,241,0.07) 1px, transparent 1px);
-        background-size: 40px 40px;
-    ">
+            style="background-image: linear-gradient(rgba(99,102,241,0.07) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(99,102,241,0.07) 1px, transparent 1px);
+                    background-size: 40px 40px;">
         </div>
 
         {{-- Glow orbs --}}
@@ -355,7 +379,223 @@
         </div>
     </div>
 
+    {{-- ===== AUTH MODAL ===== --}}
+    <div id="authModal" class="fixed inset-0 z-50 hidden">
+        {{-- Backdrop --}}
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeAuthModal()"></div>
+
+        {{-- Modal box --}}
+        <div class="relative flex items-center justify-center min-h-screen px-4">
+            <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+                style="animation: modalSlideUp 0.3s ease;">
+
+                {{-- Header --}}
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-700 px-6 py-5 relative">
+                    <button onclick="closeAuthModal()"
+                        class="absolute top-4 right-4 text-white/60 hover:text-white transition">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                            <i class="fa-solid fa-wand-magic-sparkles text-yellow-300"></i>
+                        </div>
+                        <div>
+                            <h2 id="modalTitle" class="text-white font-bold text-lg">Mulai Trip Planner AI</h2>
+                            <p id="modalSubtitle" class="text-white/70 text-xs">Daftarkan akun untuk membuat itinerary
+                                gratis</p>
+                        </div>
+                    </div>
+
+                    {{-- Tab switcher --}}
+                    <div id="authTabs" class="flex mt-4 bg-white/10 rounded-xl p-1">
+                        <button onclick="switchTab('register')" id="tabRegister"
+                            class="auth-tab flex-1 py-1.5 text-xs font-semibold rounded-lg text-white bg-white/20 transition">
+                            Daftar
+                        </button>
+                        <button onclick="switchTab('login')" id="tabLogin"
+                            class="auth-tab flex-1 py-1.5 text-xs font-semibold rounded-lg text-white/70 transition">
+                            Masuk
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Alert --}}
+                <div id="authAlert" class="hidden mx-6 mt-4 px-4 py-3 rounded-xl text-sm flex items-start gap-2"></div>
+
+                {{-- ===== FORM REGISTER ===== --}}
+                <div id="formRegister" class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">
+                            <i class="fa-solid fa-user mr-1 text-gray-400"></i> Nama Lengkap
+                        </label>
+                        <input type="text" id="reg_name" placeholder="Nama kamu"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">
+                            <i class="fa-solid fa-envelope mr-1 text-gray-400"></i> Email
+                        </label>
+                        <input type="email" id="reg_email" placeholder="email@kamu.com"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">
+                            <i class="fa-solid fa-lock mr-1 text-gray-400"></i> Password
+                        </label>
+                        <input type="password" id="reg_password" placeholder="Minimal 8 karakter"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">
+                            <i class="fa-solid fa-shield-check mr-1 text-gray-400"></i> Konfirmasi Password
+                        </label>
+                        <input type="password" id="reg_password_confirmation" placeholder="Ulangi password"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <button onclick="doRegister()" id="btnRegister"
+                        class="w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> Buat Akun Gratis
+                    </button>
+                    <p class="text-center text-xs text-gray-400">
+                        Sudah punya akun?
+                        <button onclick="switchTab('login')" class="text-blue-600 font-semibold hover:underline">Masuk di
+                            sini</button>
+                    </p>
+                </div>
+
+                {{-- ===== FORM LOGIN ===== --}}
+                <div id="formLogin" class="p-6 space-y-4 hidden">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">
+                            <i class="fa-solid fa-envelope mr-1 text-gray-400"></i> Email
+                        </label>
+                        <input type="email" id="login_email" placeholder="email@kamu.com"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-1.5">
+                            <i class="fa-solid fa-lock mr-1 text-gray-400"></i> Password
+                        </label>
+                        <input type="password" id="login_password" placeholder="Password kamu"
+                            class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <button onclick="doLogin()" id="btnLogin"
+                        class="w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-right-to-bracket"></i> Masuk
+                    </button>
+                    <p class="text-center text-xs text-gray-400">
+                        Belum punya akun?
+                        <button onclick="switchTab('register')" class="text-blue-600 font-semibold hover:underline">Daftar
+                            gratis</button>
+                    </p>
+                </div>
+
+                {{-- ===== FORM OTP ===== --}}
+                <div id="formOtp" class="p-6 space-y-4 hidden">
+                    <div class="text-center mb-2">
+                        <div class="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-envelope-open-text text-blue-500 text-2xl"></i>
+                        </div>
+                        <p class="text-sm text-gray-600 leading-relaxed">
+                            Kode OTP telah dikirim ke<br>
+                            <strong id="otpEmailDisplay" class="text-gray-800"></strong>
+                        </p>
+                    </div>
+
+                    <input type="hidden" id="otp_email">
+
+                    {{-- OTP Input 6 digit --}}
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 mb-2 text-center">Masukkan 6 digit kode
+                            OTP</label>
+                        <div class="flex gap-2 justify-center">
+                            @for ($i = 0; $i < 6; $i++)
+                                <input type="text" maxlength="1"
+                                    class="otp-input w-11 h-12 border-2 border-gray-200 rounded-xl text-center text-lg font-bold
+                                      focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition"
+                                    onkeyup="otpKeyup(this, {{ $i }})"
+                                    onkeydown="otpKeydown(event, {{ $i }})"
+                                    oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+                            @endfor
+                        </div>
+                    </div>
+
+                    {{-- Countdown --}}
+                    <p class="text-center text-xs text-gray-400">
+                        Kode berlaku <span id="otpCountdown" class="font-semibold text-blue-600">10:00</span>
+                    </p>
+
+                    <button onclick="doVerifyOtp()" id="btnVerifyOtp"
+                        class="w-full bg-blue-600 text-white py-3 rounded-xl text-sm font-bold hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-circle-check"></i> Verifikasi Akun
+                    </button>
+
+                    <div class="text-center">
+                        <p class="text-xs text-gray-400 mb-1">Tidak dapat kode?</p>
+                        <button id="btnResend" onclick="doResendOtp()" disabled
+                            class="text-xs text-blue-600 font-semibold hover:underline disabled:text-gray-400 disabled:no-underline disabled:cursor-not-allowed">
+                            Kirim ulang OTP (<span id="resendCountdown">60</span>s)
+                        </button>
+                    </div>
+                </div>
+
+                {{-- ===== SUCCESS ===== --}}
+                <div id="formSuccess" class="p-8 text-center hidden">
+                    <div class="w-20 h-20 bg-green-50 rounded-3xl flex items-center justify-center mx-auto mb-4"
+                        style="animation: bounceIn 0.5s ease;">
+                        <i class="fa-solid fa-circle-check text-green-500 text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Berhasil! 🎉</h3>
+                    <p id="successMessage" class="text-sm text-gray-500 mb-6"></p>
+                    <button onclick="closeAuthModal(); window.location.reload();"
+                        class="bg-blue-600 text-white px-8 py-3 rounded-xl text-sm font-bold hover:bg-blue-700 transition">
+                        Mulai Trip Planner
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
     <style>
+        @keyframes modalSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.5);
+                opacity: 0;
+            }
+
+            70% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .auth-tab {
+            cursor: pointer;
+        }
+
+        .otp-input::-webkit-inner-spin-button,
+        .otp-input::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+        }
+
         @keyframes orbMove1 {
 
             0%,
@@ -440,6 +680,317 @@
 
     @push('scripts')
         <script>
+            const CSRF = '{{ csrf_token() }}';
+            let otpEmail = '';
+            let countdownTimer = null;
+            let resendTimer = null;
+
+            // ===== Modal =====
+            function closeAuthModal() {
+                document.getElementById('authModal').classList.add('hidden');
+                clearTimers();
+            }
+
+            function showAlert(msg, type = 'error') {
+                const el = document.getElementById('authAlert');
+                el.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'border-red-200',
+                    'bg-green-50', 'text-green-700', 'border-green-200',
+                    'bg-blue-50', 'text-blue-700', 'border-blue-200');
+                const map = {
+                    error: ['bg-red-50', 'text-red-700', 'border', 'border-red-200'],
+                    success: ['bg-green-50', 'text-green-700', 'border', 'border-green-200'],
+                    info: ['bg-blue-50', 'text-blue-700', 'border', 'border-blue-200'],
+                };
+                el.classList.add(...(map[type] || map.error));
+                el.innerHTML =
+                    `<i class="fa-solid fa-${type === 'error' ? 'circle-exclamation' : type === 'success' ? 'circle-check' : 'circle-info'} flex-shrink-0 mt-0.5"></i> ${msg}`;
+                el.classList.remove('hidden');
+            }
+
+            function hideAlert() {
+                document.getElementById('authAlert').classList.add('hidden');
+            }
+
+            function setLoading(btnId, loading) {
+                const btn = document.getElementById(btnId);
+                if (loading) {
+                    btn.disabled = true;
+                    btn.innerHTML = `<svg class="animate-spin w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+    </svg> Memproses...`;
+                } else {
+                    btn.disabled = false;
+                }
+            }
+
+            // ===== Tab =====
+            function switchTab(tab) {
+                hideAlert();
+                document.getElementById('formRegister').classList.toggle('hidden', tab !== 'register');
+                document.getElementById('formLogin').classList.toggle('hidden', tab !== 'login');
+                document.getElementById('formOtp').classList.add('hidden');
+                document.getElementById('formSuccess').classList.add('hidden');
+                document.getElementById('authTabs').classList.remove('hidden');
+
+                document.getElementById('tabRegister').className =
+                    'auth-tab flex-1 py-1.5 text-xs font-semibold rounded-lg transition ' +
+                    (tab === 'register' ? 'text-white bg-white/20' : 'text-white/70');
+                document.getElementById('tabLogin').className =
+                    'auth-tab flex-1 py-1.5 text-xs font-semibold rounded-lg transition ' +
+                    (tab === 'login' ? 'text-white bg-white/20' : 'text-white/70');
+
+                document.getElementById('modalTitle').textContent = tab === 'register' ? 'Mulai Trip Planner AI' :
+                    'Selamat Datang Kembali';
+                document.getElementById('modalSubtitle').textContent = tab === 'register' ?
+                    'Daftarkan akun untuk membuat itinerary gratis' : 'Masuk untuk melanjutkan trip planning';
+            }
+
+            // ===== Register =====
+            async function doRegister() {
+                hideAlert();
+                setLoading('btnRegister', true);
+
+                const data = {
+                    name: document.getElementById('reg_name').value,
+                    email: document.getElementById('reg_email').value,
+                    password: document.getElementById('reg_password').value,
+                    password_confirmation: document.getElementById('reg_password_confirmation').value,
+                    _token: CSRF,
+                };
+
+                try {
+                    const res = await fetch('{{ route('auth.register') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': CSRF
+                        },
+                        body: JSON.stringify(data),
+                    });
+                    const json = await res.json();
+
+                    if (json.success) {
+                        showOtpForm(json.email);
+                    } else {
+                        showAlert(json.message || json.errors ? Object.values(json.errors || {}).flat().join('<br>') :
+                            'Terjadi kesalahan.');
+                    }
+                } catch (e) {
+                    showAlert('Terjadi kesalahan. Coba lagi.');
+                }
+
+                document.getElementById('btnRegister').disabled = false;
+                document.getElementById('btnRegister').innerHTML = '<i class="fa-solid fa-user-plus"></i> Buat Akun Gratis';
+            }
+
+            // ===== Login =====
+            async function doLogin() {
+                hideAlert();
+                setLoading('btnLogin', true);
+
+                const data = {
+                    email: document.getElementById('login_email').value,
+                    password: document.getElementById('login_password').value,
+                    _token: CSRF,
+                };
+
+                try {
+                    const res = await fetch('{{ route('auth.login') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': CSRF
+                        },
+                        body: JSON.stringify(data),
+                    });
+                    const json = await res.json();
+
+                    if (json.success) {
+                        showSuccess(json.message);
+                    } else if (json.step === 'otp') {
+                        showOtpForm(json.email);
+                        showAlert('Akun belum diverifikasi. Kami kirim ulang kode OTP ke email kamu.', 'info');
+                    } else {
+                        showAlert(json.message);
+                    }
+                } catch (e) {
+                    showAlert('Terjadi kesalahan. Coba lagi.');
+                }
+
+                document.getElementById('btnLogin').disabled = false;
+                document.getElementById('btnLogin').innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Masuk';
+            }
+
+            // ===== OTP Form =====
+            function showOtpForm(email) {
+                otpEmail = email;
+                document.getElementById('otp_email').value = email;
+                document.getElementById('otpEmailDisplay').textContent = email;
+                document.getElementById('authTabs').classList.add('hidden');
+                document.getElementById('formRegister').classList.add('hidden');
+                document.getElementById('formLogin').classList.add('hidden');
+                document.getElementById('formOtp').classList.remove('hidden');
+                document.getElementById('modalTitle').textContent = 'Verifikasi Email';
+                document.getElementById('modalSubtitle').textContent = 'Masukkan kode OTP yang dikirim ke email kamu';
+                hideAlert();
+                startCountdown();
+                startResendCountdown();
+                document.querySelectorAll('.otp-input')[0]?.focus();
+            }
+
+            // ===== OTP Input handling =====
+            function otpKeyup(input, idx) {
+                const inputs = document.querySelectorAll('.otp-input');
+                if (input.value && idx < 5) {
+                    inputs[idx + 1].focus();
+                }
+            }
+
+            function otpKeydown(e, idx) {
+                const inputs = document.querySelectorAll('.otp-input');
+                if (e.key === 'Backspace' && !inputs[idx].value && idx > 0) {
+                    inputs[idx - 1].focus();
+                }
+            }
+
+            function getOtpValue() {
+                return Array.from(document.querySelectorAll('.otp-input')).map(i => i.value).join('');
+            }
+
+            // ===== Verify OTP =====
+            async function doVerifyOtp() {
+                hideAlert();
+                const otp = getOtpValue();
+                if (otp.length !== 6) {
+                    showAlert('Masukkan 6 digit kode OTP.');
+                    return;
+                }
+                setLoading('btnVerifyOtp', true);
+
+                try {
+                    const res = await fetch('{{ route('auth.verify-otp') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': CSRF
+                        },
+                        body: JSON.stringify({
+                            email: otpEmail,
+                            otp,
+                            _token: CSRF
+                        }),
+                    });
+                    const json = await res.json();
+
+                    if (json.success) {
+                        clearTimers();
+                        showSuccess(json.message);
+                    } else {
+                        showAlert(json.message);
+                    }
+                } catch (e) {
+                    showAlert('Terjadi kesalahan. Coba lagi.');
+                }
+
+                document.getElementById('btnVerifyOtp').disabled = false;
+                document.getElementById('btnVerifyOtp').innerHTML =
+                    '<i class="fa-solid fa-circle-check"></i> Verifikasi Akun';
+            }
+
+            // ===== Resend OTP =====
+            async function doResendOtp() {
+                hideAlert();
+                document.getElementById('btnResend').disabled = true;
+
+                try {
+                    const res = await fetch('{{ route('auth.resend-otp') }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': CSRF
+                        },
+                        body: JSON.stringify({
+                            email: otpEmail,
+                            _token: CSRF
+                        }),
+                    });
+                    const json = await res.json();
+                    showAlert(json.message, json.success ? 'success' : 'error');
+                    if (json.success) {
+                        startCountdown();
+                        startResendCountdown();
+                        document.querySelectorAll('.otp-input').forEach(i => i.value = '');
+                        document.querySelectorAll('.otp-input')[0]?.focus();
+                    }
+                } catch (e) {
+                    showAlert('Gagal kirim OTP. Coba lagi.');
+                }
+            }
+
+            // ===== Success =====
+            function showSuccess(msg) {
+                document.getElementById('authTabs').classList.add('hidden');
+                document.getElementById('formRegister').classList.add('hidden');
+                document.getElementById('formLogin').classList.add('hidden');
+                document.getElementById('formOtp').classList.add('hidden');
+                document.getElementById('formSuccess').classList.remove('hidden');
+                document.getElementById('successMessage').textContent = msg;
+                hideAlert();
+            }
+
+            // ===== Countdown 10 menit =====
+            function startCountdown() {
+                if (countdownTimer) clearInterval(countdownTimer);
+                let seconds = 600;
+                const el = document.getElementById('otpCountdown');
+
+                countdownTimer = setInterval(() => {
+                    seconds--;
+                    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+                    const s = String(seconds % 60).padStart(2, '0');
+                    if (el) el.textContent = `${m}:${s}`;
+                    if (seconds <= 0) {
+                        clearInterval(countdownTimer);
+                        if (el) {
+                            el.textContent = 'Kadaluarsa';
+                            el.classList.add('text-red-500');
+                        }
+                    }
+                }, 1000);
+            }
+
+            // ===== Resend countdown 60 detik =====
+            function startResendCountdown() {
+                if (resendTimer) clearInterval(resendTimer);
+                let sec = 60;
+                const btn = document.getElementById('btnResend');
+                const el = document.getElementById('resendCountdown');
+                if (btn) btn.disabled = true;
+
+                resendTimer = setInterval(() => {
+                    sec--;
+                    if (el) el.textContent = sec;
+                    if (sec <= 0) {
+                        clearInterval(resendTimer);
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.innerHTML = 'Kirim ulang OTP';
+                        }
+                    }
+                }, 1000);
+            }
+
+            function clearTimers() {
+                if (countdownTimer) clearInterval(countdownTimer);
+                if (resendTimer) clearInterval(resendTimer);
+            }
+
+            // Close modal dengan ESC
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') closeAuthModal();
+            });
+
             const funFacts = [{
                     icon: "🏛️",
                     text: "Candi Borobudur adalah candi Buddha terbesar di dunia, dibangun pada abad ke-8 Masehi."

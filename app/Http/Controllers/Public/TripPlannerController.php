@@ -16,6 +16,16 @@ class TripPlannerController extends Controller {
 
     public function generate(Request $request) {
 
+        $user = $request->user();
+        if ($user) {
+            $quota = (int) ($user->trip_plan_quota ?? 2);
+            $generated = (int) ($user->trip_plan_generated_count ?? 0);
+
+            if ($generated >= $quota) {
+                return back()->with('ai_error', 'Kuota generate trip kamu sudah habis.');
+            }
+        }
+
         set_time_limit(240);
         $request->validate([
             'duration'   => 'required|integer|min:1|max:7',
@@ -27,17 +37,27 @@ class TripPlannerController extends Controller {
 
         // Ambil semua destinasi approved dari DB
         $destinations = Destination::approved()
-            ->with(['category', 'hero'])
-            ->get()
-            ->map(fn($d) => [
-                'id'       => $d->id,
-                'nama'     => $d->title,
-                'kategori' => $d->category->name,
-                'wilayah'  => $d->district,
-                'deskripsi'=> substr($d->description, 0, 150),
-                'rating'   => $d->averageRating(),
-                'slug'     => $d->slug,
-            ]);
+        ->with('category')
+        ->get()
+        ->map(fn($d) => [
+            's' => $d->slug,
+            'n' => $d->title,
+            'k' => $d->category->name,
+            'w' => $d->district,
+            'r' => $d->averageRating(),
+        ]);
+        // $destinations = Destination::approved()
+        //     ->with(['category', 'hero'])
+        //     ->get()
+        //     ->map(fn($d) => [
+        //         'id'       => $d->id,
+        //         'nama'     => $d->title,
+        //         'kategori' => $d->category->name,
+        //         'wilayah'  => $d->district,
+        //         'deskripsi'=> substr($d->description, 0, 150),
+        //         'rating'   => $d->averageRating(),
+        //         'slug'     => $d->slug,
+        //     ]);
 
         $budgetLabel = [
             'hemat'  => 'Budget hemat (backpacker, gratis atau murah)',
@@ -228,6 +248,11 @@ class TripPlannerController extends Controller {
                         $dest['found']    = false;
                     }
                 }
+            }
+
+            // Increment quota counter hanya jika generate berhasil & valid
+            if ($user) {
+                $user->increment('trip_plan_generated_count');
             }
 
             session(['trip_itinerary' => $itinerary, 'trip_input' => $request->all()]);
