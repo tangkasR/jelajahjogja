@@ -734,16 +734,20 @@
                     const coords = dayPoints.map(p => [p.lat, p.lng]);
 
                     // Render marker per destinasi
-                    dayPoints.forEach(p => {
+                    // Gunakan nomor urutan per hari agar label pin sesuai harinya
+                    dayPoints.forEach((p, idxDay) => {
+                        const markerNumber = idxDay + 1;
                         const marker = L.marker([p.lat, p.lng], {
-                                icon: makeDestIcon(color, p.urutan)
+                                icon: makeDestIcon(color, markerNumber)
                             })
+
                             .addTo(map)
                             .bindPopup(`
                     <div style="padding:12px 14px;min-width:190px;">
                         <div style="display:flex;align-items:center;gap:7px;margin-bottom:8px;">
                             <div style="background:${color};color:white;width:24px;height:24px;border-radius:50%;
-                                display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">${p.urutan}</div>
+                                display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;">${markerNumber}</div>
+
                             <p style="font-weight:700;font-size:13px;color:#0f172a;margin:0;">${p.nama}</p>
                         </div>
                         <span style="background:${color}18;color:${color};font-size:11px;font-weight:600;
@@ -875,18 +879,66 @@
                     padding: [50, 50]
                 });
 
-                // Bangun full route untuk animasi (hanya saat "Semua Hari")
+                // Bangun full route untuk animasi.
+                // Agar jalur terlihat lengkap dari hari 1 sampai hari terakhir, fullRouteCoords diisi
+                // dengan rute OSRM yang dihubungkan berurutan per hari (bukan 1 kali OSRM untuk semua waypoint).
                 if (filterDay === 'all' && allWaypoints.length >= 2) {
                     try {
-                        fullRouteCoords = await fetchRoadRoute(allWaypoints);
+                        const fullSegments = [];
+                        for (let day = 1; day <= totalDays; day++) {
+                            const pts = routeByDay[day] || [];
+                            if (!pts.length) continue;
+
+                            const dayCoords = pts.map(p => [p.lat, p.lng]);
+                            if (dayCoords.length < 2) {
+                                // hanya 1 titik, tetap sambungkan
+                                if (fullSegments.length === 0) fullSegments.push(dayCoords[0]);
+                                else fullSegments.push(dayCoords[0]);
+                                continue;
+                            }
+
+                            const seg = await fetchRoadRoute(dayCoords);
+                            if (seg?.length) {
+                                if (fullSegments.length > 0) {
+                                    // hindari duplikasi titik terakhir hari sebelumnya
+                                    fullSegments.push(...seg.slice(1));
+                                } else {
+                                    fullSegments.push(...seg);
+                                }
+                            }
+
+                            // connector antar hari (biar route flow benar)
+                            if (day < totalDays) {
+                                const nextPts = routeByDay[day + 1] || [];
+                                if (nextPts.length) {
+                                    const last = pts[pts.length - 1];
+                                    const first = nextPts[0];
+                                    const conn = await fetchRoadRoute([
+                                        [last.lat, last.lng],
+                                        [first.lat, first.lng]
+                                    ]);
+                                    if (conn?.length) {
+                                        // connector slice(1) supaya tidak dobel
+                                        if (fullSegments.length > 0) {
+                                            fullSegments.push(...conn.slice(1));
+                                        } else {
+                                            fullSegments.push(...conn);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        fullRouteCoords = fullSegments.length ? fullSegments : allWaypoints;
                     } catch (e) {
                         fullRouteCoords = allWaypoints;
                     }
-                    // Tampilkan tombol animasi
+
                     document.getElementById('animBtn').style.display = 'flex';
                 } else {
                     document.getElementById('animBtn').style.display = 'none';
                 }
+
 
                 // Strategi
                 if (strategi) {

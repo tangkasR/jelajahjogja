@@ -14,9 +14,36 @@ class DestinationController extends Controller {
 
     public function index(Request $request) {
         $query = Destination::with(['category', 'hero']);
+
         if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
+
+        // Search
+        // - default (advance_field = "all"): cari ke beberapa kolom (title, district, submitter_name)
+        // - advance search: hanya cari di kolom yang dipilih
+        if ($request->filled('q')) {
+            $q = $request->q;
+            $field = $request->input('advance_field', 'all');
+
+            $query->where(function ($query) use ($q, $field) {
+                $like = '%' . $q . '%';
+
+                $allowedFields = ['title', 'district', 'submitter_name'];
+                if (!in_array($field, $allowedFields, true)) {
+                    $field = 'all';
+                }
+
+                if ($field === 'all') {
+                    $query->where('title', 'like', $like)
+                        ->orWhere('district', 'like', $like)
+                        ->orWhere('submitter_name', 'like', $like);
+                } else {
+                    $query->where($field, 'like', $like);
+                }
+            });
+        }
+
         $destinations = $query->latest()->paginate(15)->withQueryString();
         return view('admin.destinations.index', compact('destinations'));
     }

@@ -1,0 +1,4 @@
+-   [x] Update Admin DestinationController: tambahkan filter search `q` untuk semua field (title, district, submitter_name) + dukung advance search (filter field spesifik)
+-   [x] Update Admin Destination index blade: tambah form search (default semua field) + advance search pilihan field
+-   [ ] Pastikan pagination tetap membawa query string (`withQueryString()`) dan reset link bekerja
+-   [ ] Jalankan pengecekan manual: buka /admin/destinations, coba search, navigasi pagination, pastikan semua data tampil

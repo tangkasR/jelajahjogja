@@ -35,6 +35,7 @@ class TripPlannerController extends Controller {
             'extra_note' => 'nullable|string|max:300',
         ]);
 
+
         // Ambil semua destinasi approved dari DB
         $destinations = Destination::approved()
         ->with('category')
@@ -74,6 +75,68 @@ class TripPlannerController extends Controller {
 
         $interestList = implode(', ', $request->interests);
         $extraNote    = $request->extra_note ? "Catatan tambahan: {$request->extra_note}" : '';
+
+        // Untuk mencegah prompt terlalu panjang saat user memilih semua opsi,
+        // kita limit data destinasi yang dikirim ke AI.
+        // Mapping minat -> nama Category di database.
+        $interestToCategory = [
+            'alam' => 'Alam',
+            'budaya' => 'Budaya',
+            'sejarah' => 'Sejarah',
+            'kuliner' => 'Kuliner',
+            'belanja' => 'Belanja',
+            'foto' => 'Fotografi',
+            'religi' => 'Religi',
+            'petualangan' => 'Petualangan',
+        ];
+
+        $selectedCategories = collect($request->interests)
+            ->map(fn($i) => $interestToCategory[$i] ?? null)
+            ->filter()
+            ->values();
+
+        $maxDestinationsForPrompt = 60;
+
+        // Ambil destinasi hanya yang relevan berdasarkan category (jika ada)
+        // lalu limit untuk menghindari AI error.
+        $destinationsForPromptQuery = Destination::approved()
+            ->with('category');
+
+        if ($selectedCategories->count() > 0) {
+            $destinationsForPromptQuery->whereHas('category', function ($q) use ($selectedCategories) {
+                $q->whereIn('name', $selectedCategories);
+            });
+        }
+
+        $destinations = $destinationsForPromptQuery
+            ->get()
+            ->sortByDesc(fn($d) => $d->averageRating())
+            ->take($maxDestinationsForPrompt)
+            ->map(fn($d) => [
+                's' => $d->slug,
+                'n' => $d->title,
+                'k' => $d->category->name,
+                'w' => $d->district,
+                'r' => $d->averageRating(),
+            ]);
+
+        // Jika ternyata query relevan menghasilkan terlalu sedikit data (mis. category tidak ada),
+        // fallback ambil top destinasi berdasarkan rating.
+        if ($destinations->count() < 5) {
+            $destinations = Destination::approved()
+                ->with('category')
+                ->get()
+                ->sortByDesc(fn($d) => $d->averageRating())
+                ->take($maxDestinationsForPrompt)
+                ->map(fn($d) => [
+                    's' => $d->slug,
+                    'n' => $d->title,
+                    'k' => $d->category->name,
+                    'w' => $d->district,
+                    'r' => $d->averageRating(),
+                ]);
+        }
+
         $prompt = <<<PROMPT
         Kamu adalah travel planner profesional Yogyakarta. Buatkan perencanaan wisata Yogyakarta yang detail, efisien, dan realistis.
 
