@@ -95,7 +95,7 @@ class TripPlannerController extends Controller {
             ->filter()
             ->values();
 
-        $maxDestinationsForPrompt = 60;
+        $maxDestinationsForPrompt = 25;
 
         // Ambil destinasi hanya yang relevan berdasarkan category (jika ada)
         // lalu limit untuk menghindari AI error.
@@ -141,7 +141,7 @@ class TripPlannerController extends Controller {
         Kamu adalah travel planner profesional Yogyakarta. Buatkan perencanaan wisata Yogyakarta yang detail, efisien, dan realistis.
 
         DATA DESTINASI TERSEDIA DI DATABASE:
-        {$destinations->toJson(JSON_PRETTY_PRINT)}
+        {$destinations->toJson()}
 
         INPUT USER:
         - Durasi: {$request->duration} hari
@@ -253,7 +253,7 @@ class TripPlannerController extends Controller {
                 'Content-Type'  => 'application/json',
             ])->timeout(240)->post('https://api.groq.com/openai/v1/chat/completions', [
                 'model'       => config('services.groq.model', 'qwen/qwen3.8-27b'),
-                'max_tokens'  => 4000,
+                'max_tokens'  => 2500,
                 'temperature' => 0.7,
                 'response_format' => ['type' => 'json_object'],
                 'messages'    => [
@@ -269,7 +269,11 @@ class TripPlannerController extends Controller {
             ]);
 
             if ($response->failed()) {
-                return back()->with('ai_error', 'Gagal menghubungi AI. Code: ' . $response->status());
+                $errorMsg = $response->json('error.message') ?? ('Code: ' . $response->status());
+                if ($response->status() === 429) {
+                    $errorMsg = 'Batas penggunaan per menit (rate limit) AI tercapai. Tunggu 30-60 detik lalu coba lagi.';
+                }
+                return back()->with('ai_error', 'Gagal menghubungi AI. ' . $errorMsg);
             }
 
             $content = $response->json('choices.0.message.content');
