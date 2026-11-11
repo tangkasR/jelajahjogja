@@ -249,7 +249,7 @@ class TripPlannerController extends Controller {
             set_time_limit(360);
 
             $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . env('GROQ_API_KEY'),
+                'Authorization' => 'Bearer ' . config('services.groq.key'),
                 'Content-Type'  => 'application/json',
             ])->timeout(240)->post('https://api.groq.com/openai/v1/chat/completions', [
                 'model'       => 'llama-3.3-70b-versatile',
