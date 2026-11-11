@@ -252,9 +252,10 @@ class TripPlannerController extends Controller {
                 'Authorization' => 'Bearer ' . config('services.groq.key'),
                 'Content-Type'  => 'application/json',
             ])->timeout(240)->post('https://api.groq.com/openai/v1/chat/completions', [
-                'model'       => 'llama-3.3-70b-versatile',
+                'model'       => config('services.groq.model', 'qwen/qwen3.8-27b'),
                 'max_tokens'  => 4000,
                 'temperature' => 0.7,
+                'response_format' => ['type' => 'json_object'],
                 'messages'    => [
                     [
                         'role'    => 'system',
